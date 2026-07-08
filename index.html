@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JPOS Premier League - Season 1 Registration</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Manrope', sans-serif;
+            background: #0f172a;
+            min-height: 100vh;
+            padding: 40px 20px;
+            position: relative;
+            color: #e2e8f0;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(circle at 20% 20%, rgba(34, 197, 94, 0.12) 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(59, 130, 246, 0.12) 0%, transparent 40%);
+            pointer-events: none;
+        }
+
+        .container { max-width: 720px; margin: 0 auto; position: relative; z-index: 1; }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 35px 30px;
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.12) 0%, rgba(59, 130, 246, 0.12) 100%);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .org-name { font-size: 0.85em; color: #22c55e; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+
+        h1 { font-family: 'Crimson Pro', serif; font-size: 2.6em; color: #f8fafc; margin-bottom: 8px; font-weight: 700; line-height: 1.15; }
+
+        .season-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: #fff; font-weight: 700; padding: 6px 18px; border-radius: 30px;
+            font-size: 0.95em; letter-spacing: 1px; margin-top: 6px;
+        }
+
+        .event-meta {
+            display: flex; justify-content: center; gap: 25px; flex-wrap: wrap;
+            margin-top: 20px; color: #cbd5e1; font-size: 0.95em;
+        }
+        .event-meta div { display: flex; align-items: center; gap: 6px; }
+        .event-meta strong { color: #f8fafc; }
+
+        .form-card {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 45px 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        .success-message, .error-message {
+            padding: 25px; border-radius: 16px; text-align: center; margin-bottom: 25px;
+            display: none; animation: slideDown 0.5s ease-out;
+        }
+        .success-message { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; }
+        .error-message { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; }
+        .success-message.show, .error-message.show { display: block; }
+
+        .section-header {
+            font-family: 'Crimson Pro', serif; font-size: 1.35em; color: #22c55e;
+            margin: 32px 0 18px 0; padding-bottom: 10px;
+            border-bottom: 2px solid rgba(34, 197, 94, 0.3); font-weight: 600;
+        }
+        .section-header:first-of-type { margin-top: 0; }
+
+        .form-group { margin-bottom: 22px; }
+
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: #e2e8f0; font-size: 0.95em; }
+        label .required { color: #22c55e; }
+
+        input[type="text"], input[type="tel"], input[type="number"], input[type="date"], textarea {
+            width: 100%; padding: 14px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px;
+            font-size: 1em; font-family: 'Manrope', sans-serif;
+            transition: all 0.3s ease; background: rgba(255, 255, 255, 0.05); color: #f1f5f9;
+            color-scheme: dark;
+        }
+        input[readonly] { opacity: 0.9; cursor: default; }
+        input:focus, textarea:focus {
+            outline: none; border-color: #22c55e; background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.12);
+        }
+        textarea { resize: vertical; min-height: 90px; }
+
+        .help-text { font-size: 0.85em; color: #94a3b8; margin-top: 5px; font-style: italic; }
+
+        .lookup-status { margin-top: 8px; font-size: 0.9em; font-weight: 600; display: none; }
+        .lookup-status.show { display: block; }
+        .lookup-status.found { color: #22c55e; }
+        .lookup-status.notfound { color: #f59e0b; }
+        .lookup-status.loading { color: #94a3b8; font-weight: 500; }
+
+        input.autofilled { border-color: rgba(34, 197, 94, 0.5); background: rgba(34, 197, 94, 0.06); }
+
+        /* Choice chips (radio) */
+        .choice-grid { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 6px; }
+        .choice {
+            position: relative; flex: 1 1 auto; min-width: 120px;
+        }
+        .choice input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+        .choice span {
+            display: block; text-align: center; padding: 14px 16px;
+            border: 1.5px solid rgba(255, 255, 255, 0.18); border-radius: 12px;
+            background: rgba(255, 255, 255, 0.04); color: #e2e8f0; font-weight: 600;
+            cursor: pointer; transition: all 0.2s ease; user-select: none;
+        }
+        .choice input:checked + span {
+            border-color: #22c55e; background: rgba(34, 197, 94, 0.18); color: #fff;
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.12);
+        }
+        .choice span:hover { border-color: rgba(34, 197, 94, 0.6); }
+
+        .size-grid .choice { min-width: 64px; flex: 0 1 72px; }
+
+        /* Payment */
+        .payment-section {
+            background: rgba(59, 130, 246, 0.1); padding: 25px; border-radius: 16px;
+            border: 1px solid rgba(59, 130, 246, 0.3); margin-top: 8px;
+        }
+        .amount-badge {
+            display: inline-block; background: #f59e0b; color: #111827;
+            font-weight: 800; font-size: 1.4em; padding: 4px 20px; border-radius: 12px; margin-bottom: 18px;
+        }
+        .pay-flex { display: flex; gap: 25px; flex-wrap: wrap; align-items: center; justify-content: center; }
+        #qrcode {
+            background: #fff; padding: 12px; border-radius: 12px; display: inline-block; line-height: 0;
+        }
+        #qrcode img, #qrcode canvas { display: block; }
+        .pay-details { flex: 1; min-width: 200px; }
+        .pay-details p { margin-bottom: 8px; color: #cbd5e1; }
+        .gpay-number { font-size: 1.5em; font-weight: 800; color: #f8fafc; letter-spacing: 1px; }
+        .pay-btn {
+            display: inline-block; margin-top: 14px; padding: 14px 26px;
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: #fff;
+            border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 1.05em;
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4); transition: all 0.3s ease;
+        }
+        .pay-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(34, 197, 94, 0.5); }
+
+        /* Declaration */
+        .declaration {
+            display: flex; gap: 14px; align-items: flex-start;
+            background: rgba(245, 158, 11, 0.1); padding: 20px; border-radius: 12px;
+            border: 1px solid rgba(245, 158, 11, 0.3); margin-top: 8px;
+        }
+        .declaration input[type="checkbox"] {
+            width: 22px; height: 22px; margin-top: 2px; cursor: pointer; accent-color: #22c55e; flex-shrink: 0;
+        }
+        .declaration label { margin: 0; font-weight: 500; color: #f1f5f9; line-height: 1.5; cursor: pointer; }
+
+        .btn {
+            padding: 14px 28px; border: none; border-radius: 10px; cursor: pointer;
+            font-weight: 600; transition: all 0.3s ease; font-family: 'Manrope', sans-serif; font-size: 1em;
+        }
+        .btn-primary { background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: white; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(34, 197, 94, 0.5); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .submit-btn { width: 100%; padding: 18px; margin-top: 30px; font-size: 1.1em; }
+
+        .footer-note { text-align: center; color: #64748b; font-size: 0.85em; margin-top: 25px; }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 2em; }
+            .form-card { padding: 30px 22px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="org-name">Sri Jaitaranpatti Oswal Sangh, Chennai</div>
+            <h1>JPOS Premier League</h1>
+            <div class="season-badge">🏏 SEASON 1</div>
+            <div class="event-meta">
+                <div>📅 <strong>15 August</strong></div>
+                <div>⏰ From <strong>8:00 AM</strong></div>
+                <div>💰 Entry <strong>₹200</strong></div>
+            </div>
+        </div>
+
+        <div class="form-card">
+            <div class="success-message" id="successMessage">
+                <h2>✓ Registration Successful!</h2>
+                <p>You're in for JPL Season 1. See you on 15th August at 8 AM. 🏏</p>
+            </div>
+
+            <div class="error-message" id="errorMessage">
+                <h2>⚠ <span id="errorTitle">Error</span></h2>
+                <p id="errorText"></p>
+            </div>
+
+            <form id="registrationForm">
+                <!-- Player Details -->
+                <div class="section-header">Player Details</div>
+
+                <div class="form-group">
+                    <label for="uid">Member UID <span class="required">*</span></label>
+                    <input type="text" id="uid" name="uid" required placeholder="e.g., 001, 002, 003" autocomplete="off">
+                    <div class="help-text">Enter your JPOS Member ID — your name &amp; mobile fill in automatically</div>
+                    <div class="lookup-status" id="lookupStatus"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="name">Name <span class="required">*</span></label>
+                    <input type="text" id="name" name="name" required placeholder="Auto-fills from your Member ID">
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone Number <span class="required">*</span></label>
+                    <input type="tel" id="phone" name="phone" required placeholder="10-digit mobile number" maxlength="10" inputmode="numeric">
+                </div>
+
+                <div class="form-group">
+                    <label for="dob">Date of Birth <span class="required">*</span></label>
+                    <input type="date" id="dob" name="dob" required>
+                    <div class="help-text" id="dobHelp">Auto-fills from your Member ID</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="age">Age</label>
+                    <input type="number" id="age" name="age" readonly placeholder="Calculated from date of birth">
+                    <div class="help-text">Calculated automatically from your date of birth</div>
+                </div>
+
+                <!-- Playing Role -->
+                <div class="section-header">Playing Role</div>
+
+                <div class="form-group">
+                    <label>Choose your role <span class="required">*</span></label>
+                    <div class="choice-grid" id="roleGroup">
+                        <label class="choice"><input type="radio" name="role" value="Batsman" required><span>🏏 Batsman</span></label>
+                        <label class="choice"><input type="radio" name="role" value="Bowler"><span>🎯 Bowler</span></label>
+                        <label class="choice"><input type="radio" name="role" value="All Rounder"><span>⭐ All Rounder</span></label>
+                        <label class="choice"><input type="radio" name="role" value="WK Keeper"><span>🧤 WK Keeper</span></label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="skills">Skills / Description <span class="required">*</span></label>
+                    <textarea id="skills" name="skills" required placeholder="e.g., Right-hand opener, Off Spinner, aggressive middle-order"></textarea>
+                    <div class="help-text">Tell us about your batting/bowling style</div>
+                </div>
+
+                <!-- T-Shirt -->
+                <div class="section-header">T-Shirt Size</div>
+                <div class="form-group">
+                    <label>Choose your size <span class="required">*</span></label>
+                    <div class="choice-grid size-grid" id="sizeGroup">
+                        <label class="choice"><input type="radio" name="tshirt" value="S" required><span>S</span></label>
+                        <label class="choice"><input type="radio" name="tshirt" value="M"><span>M</span></label>
+                        <label class="choice"><input type="radio" name="tshirt" value="L"><span>L</span></label>
+                        <label class="choice"><input type="radio" name="tshirt" value="XL"><span>XL</span></label>
+                        <label class="choice"><input type="radio" name="tshirt" value="XXL"><span>XXL</span></label>
+                    </div>
+                </div>
+
+                <!-- Payment -->
+                <div class="section-header">Registration Payment</div>
+                <div class="payment-section">
+                    <div style="text-align:center;">
+                        <div class="amount-badge">₹200</div>
+                    </div>
+                    <div class="pay-flex">
+                        <div id="qrcode" title="Scan to pay ₹200"></div>
+                        <div class="pay-details">
+                            <p>Scan the QR, or GPay / UPI to:</p>
+                            <div class="gpay-number" id="payNumberDisplay">9710220344</div>
+                            <a href="#" class="pay-btn" id="upiPayBtn">Pay ₹200 via UPI ›</a>
+                            <p class="help-text" style="margin-top:12px;">After paying, enter your payment reference / UTR number below.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 22px;">
+                    <label for="paymentRef">Payment Reference / UTR Number <span class="required">*</span></label>
+                    <input type="text" id="paymentRef" name="paymentRef" required placeholder="e.g., UPI transaction ID / reference number">
+                    <div class="help-text">Found in your GPay/PhonePe/bank payment confirmation</div>
+                </div>
+
+                <!-- Declaration -->
+                <div class="section-header">Declaration</div>
+                <div class="declaration">
+                    <input type="checkbox" id="declaration" name="declaration" required>
+                    <label for="declaration">
+                        I confirm that I will be <strong>available on 15th August from 8:00 AM</strong> for all the matches of JPOS Premier League Season 1, and the details provided above are accurate.
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary submit-btn">Complete Registration</button>
+            </form>
+        </div>
+
+        <div class="footer-note">For support, contact Saafal 📞 8939225539</div>
+    </div>
+
+    <script>
+        // ============================================================
+        // CONFIGURATION — UPDATE THESE
+        // ============================================================
+        // 1. UPI ID that receives payments. A phone number alone is NOT a
+        //    valid UPI address — replace @upi with your real handle, e.g.
+        //    9710220344@ybl (PhonePe), @oksbi, @okhdfcbank, @okbizaxis, etc.
+        const UPI_ID       = "9710220344@upi";
+        const PAYEE_NAME   = "JPOS Premier League";
+        const AMOUNT       = "200";
+        const PAY_NOTE     = "JPL Season 1 Registration";
+
+        // 2. Apps Script Web App URL where submissions are saved.
+        //    Deploy the included apps-script.gs and paste the /exec URL here.
+        const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbyT7kmCPlzf0BORlqMKhL7k8y42G5ucR9jwymg9jhoWq5uBGcIS2iiAuUl2rXb4b2bM/exec";
+
+        // 3. Member database sources used to auto-fill Name + Mobile + DOB
+        //    from the entered UID. Tried in order until one loads — the pub
+        //    link (proven to work) is the reliable fallback for the live sheet.
+        const MEMBER_DATA_SOURCES = [
+            "https://docs.google.com/spreadsheets/d/e/2PACX-1vTRWZTl6FKePPE58wM1QrmP58Iga5wSY96ILalZikzbomhMzMeJCaXt_vUpTo0pYt7nzGmW6Tpy_xsr/pub?output=csv",
+            "https://docs.google.com/spreadsheets/d/14TpqVcK3dKFRdVwT7Gq78A14CmemlSHXy-3aj2QYs3Y/gviz/tq?tqx=out:csv&gid=840518818",
+            "https://docs.google.com/spreadsheets/d/14TpqVcK3dKFRdVwT7Gq78A14CmemlSHXy-3aj2QYs3Y/export?format=csv&gid=840518818"
+        ];
+        // ============================================================
+
+        // Build the UPI deep link + QR from the config above
+        const upiLink =
+            "upi://pay?pa=" + encodeURIComponent(UPI_ID) +
+            "&pn=" + encodeURIComponent(PAYEE_NAME) +
+            "&am=" + encodeURIComponent(AMOUNT) +
+            "&cu=INR" +
+            "&tn=" + encodeURIComponent(PAY_NOTE);
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Render QR code
+            try {
+                new QRCode(document.getElementById("qrcode"), {
+                    text: upiLink, width: 176, height: 176,
+                    colorDark: "#0f172a", colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+            } catch (e) { console.error('QR render failed', e); }
+
+            // Wire the pay button + shown number
+            document.getElementById('upiPayBtn').href = upiLink;
+            document.getElementById('payNumberDisplay').textContent = UPI_ID.split('@')[0];
+
+            // Keep phone numeric
+            document.getElementById('phone').addEventListener('input', function() {
+                this.value = this.value.replace(/\D/g, '').slice(0, 10);
+                this.classList.remove('autofilled');
+            });
+
+            // Recalculate age whenever DOB changes
+            document.getElementById('dob').addEventListener('change', updateAgeFromDob);
+
+            // Load the member database and wire up UID auto-fill
+            loadMemberDatabase();
+            const uidInput = document.getElementById('uid');
+            uidInput.addEventListener('blur', lookupMember);
+            let uidTimer;
+            uidInput.addEventListener('input', function() {
+                clearTimeout(uidTimer);
+                uidTimer = setTimeout(lookupMember, 450);
+            });
+        });
+
+        // ============================================================
+        // MEMBER LOOKUP — auto-fill Name + Mobile from the UID
+        // ============================================================
+        let memberDatabase = [];
+        let memberDbReady = false;
+        let memberLoadFailed = false; // did every source fail to load?
+        let memberLoading = false;    // a load attempt is in progress
+        let memberMatched = false;   // did the UID match a member row?
+        let dbDobEmpty = false;      // was that member's DOB blank in the database?
+
+        async function loadMemberDatabase() {
+            if (memberLoading || memberDbReady) return;
+            memberLoading = true;
+            memberLoadFailed = false;
+            for (const url of MEMBER_DATA_SOURCES) {
+                try {
+                    const res = await fetch(url);
+                    if (!res.ok) continue;
+                    const txt = await res.text();
+                    if (!txt.trim() || /<!doctype|<html/i.test(txt)) continue; // login/error page
+                    const parsed = parseMemberCSV(txt);
+                    if (parsed.length) {
+                        memberDatabase = parsed;
+                        memberDbReady = true;
+                        memberLoading = false;
+                        console.log('✓ Member DB loaded:', parsed.length, 'members');
+                        // If the user already typed a UID before the DB loaded, try now.
+                        if (document.getElementById('uid').value.trim()) lookupMember();
+                        return;
+                    }
+                } catch (err) {
+                    console.warn('Member source failed, trying next:', url, err);
+                }
+            }
+            // Every source failed — let players continue by typing details manually.
+            memberLoading = false;
+            memberLoadFailed = true;
+            console.error('Member DB could not be loaded from any source.');
+            enableManualEntry('⚠ Could not load the member list. Please type your name, mobile & date of birth manually.');
+        }
+
+        function enableManualEntry(message) {
+            const status = document.getElementById('lookupStatus');
+            if (document.getElementById('uid').value.trim()) {
+                status.className = 'lookup-status notfound show';
+                status.textContent = message;
+            }
+            document.getElementById('dob').readOnly = false;
+            document.getElementById('dobHelp').textContent = 'Please enter your date of birth';
+        }
+
+        function parseMemberCSV(csv) {
+            const lines = csv.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim().split('\n');
+            if (lines.length < 2) return [];
+            const headers = splitCSVLine(lines[0]);
+            const out = [];
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i].trim()) continue;
+                const vals = splitCSVLine(lines[i]);
+                const o = {};
+                headers.forEach((h, idx) => { o[h.trim()] = (vals[idx] || '').trim(); });
+                out.push(o);
+            }
+            return out;
+        }
+
+        function splitCSVLine(line) {
+            const vals = []; let cur = '', q = false;
+            for (let i = 0; i < line.length; i++) {
+                const ch = line[i];
+                if (ch === '"') { if (q && line[i+1] === '"') { cur += '"'; i++; } else q = !q; }
+                else if (ch === ',' && !q) { vals.push(cur); cur = ''; }
+                else cur += ch;
+            }
+            vals.push(cur);
+            return vals;
+        }
+
+        function memberField(m, keys) { for (const k of keys) if (m[k] != null && m[k] !== '') return m[k]; return ''; }
+
+        function lookupMember() {
+            const status = document.getElementById('lookupStatus');
+            const nameEl = document.getElementById('name');
+            const phoneEl = document.getElementById('phone');
+            const dobEl = document.getElementById('dob');
+            const dobHelp = document.getElementById('dobHelp');
+            const raw = document.getElementById('uid').value.trim();
+
+            if (!raw) { status.className = 'lookup-status'; return; }
+            if (!memberDbReady) {
+                if (memberLoadFailed) {
+                    enableManualEntry('⚠ Member list unavailable — please enter your name, mobile & DOB manually.');
+                } else {
+                    status.className = 'lookup-status loading show';
+                    status.textContent = '⏳ Loading member list...';
+                    loadMemberDatabase(); // retry in case the first attempt failed
+                }
+                return;
+            }
+
+            const padded = /^\d+$/.test(raw) ? raw.padStart(3, '0') : raw;
+            const member = memberDatabase.find(m => {
+                const id = memberField(m, ['Member ID', 'member id', 'MemberID', 'UID', 'uid']);
+                if (!id) return false;
+                const s = id.toString().trim();
+                return s === raw || s === padded || parseInt(s) === parseInt(raw);
+            });
+
+            if (!member) {
+                status.className = 'lookup-status notfound show';
+                status.textContent = '⚠ Member ID not found — you can still enter your details manually.';
+                nameEl.classList.remove('autofilled');
+                phoneEl.classList.remove('autofilled');
+                memberMatched = false; dbDobEmpty = false;
+                dobEl.readOnly = false; dobEl.classList.remove('autofilled');
+                dobHelp.textContent = 'Please enter your date of birth';
+                return;
+            }
+
+            const name = memberField(member, ['Name', 'name']);
+            const mobile = memberField(member, ['Mobile', 'mobile', 'WhatsApp Number', 'Mobile Number', 'Phone', 'phone']);
+
+            if (name) { nameEl.value = name; nameEl.classList.add('autofilled'); }
+            if (mobile) {
+                phoneEl.value = mobile.toString().replace(/\D/g, '').slice(-10);
+                phoneEl.classList.add('autofilled');
+            }
+
+            // Date of Birth: use the database value if present, else ask for it
+            memberMatched = true;
+            const dobRaw = memberField(member, ['Date of Birth', 'date of birth', 'DOB', 'dob']);
+            const dobDate = parseDOB(dobRaw);
+            if (dobDate) {
+                dobEl.value = toISODate(dobDate);
+                dobEl.readOnly = true;
+                dobEl.classList.add('autofilled');
+                dbDobEmpty = false;
+                dobHelp.textContent = 'From your Member ID';
+            } else {
+                dobEl.value = '';
+                dobEl.readOnly = false;
+                dobEl.classList.remove('autofilled');
+                dbDobEmpty = true;
+                dobHelp.textContent = '📌 Not on record — please enter your date of birth. It will be saved to your JPOS profile.';
+            }
+            updateAgeFromDob();
+
+            status.className = 'lookup-status found show';
+            status.textContent = '✓ Welcome, ' + (name || 'Member') + '!';
+        }
+
+        // ---- Date of birth → age helpers ----
+        function parseDOB(str) {
+            if (!str) return null;
+            str = str.toString().trim();
+            let m = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);          // YYYY-MM-DD
+            if (m) return validDate(+m[1], +m[2] - 1, +m[3]);
+            m = str.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/);  // DD/MM/YYYY
+            if (m) return validDate(+m[3], +m[2] - 1, +m[1]);
+            const d = new Date(str);
+            return isNaN(d.getTime()) ? null : d;
+        }
+        function validDate(y, mo, d) { const x = new Date(y, mo, d); return isNaN(x.getTime()) ? null : x; }
+        function toISODate(d) { const p = n => String(n).padStart(2, '0'); return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); }
+        function calcAge(d) {
+            const t = new Date();
+            let a = t.getFullYear() - d.getFullYear();
+            const mo = t.getMonth() - d.getMonth();
+            if (mo < 0 || (mo === 0 && t.getDate() < d.getDate())) a--;
+            return a >= 0 ? a : '';
+        }
+        function updateAgeFromDob() {
+            const d = parseDOB(document.getElementById('dob').value);
+            document.getElementById('age').value = d ? calcAge(d) : '';
+        }
+
+        document.getElementById('registrationForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            hideError();
+
+            const phone = document.getElementById('phone').value.trim();
+            if (phone.length !== 10) {
+                showError('Please enter a valid 10-digit phone number.', 'Invalid Phone');
+                return;
+            }
+            if (!document.getElementById('declaration').checked) {
+                showError('Please accept the availability declaration to continue.', 'Declaration Required');
+                return;
+            }
+
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.textContent = 'Submitting...';
+            submitBtn.disabled = true;
+
+            const dobVal = document.getElementById('dob').value;
+            const data = {
+                uid:          document.getElementById('uid').value.trim(),
+                name:         document.getElementById('name').value.trim(),
+                phone:        phone,
+                dob:          dobVal,
+                age:          document.getElementById('age').value.trim(),
+                // Ask the backend to save this DOB into the member database only
+                // when it belongs to a known member whose DOB was blank.
+                writeMemberDob: (memberMatched && dbDobEmpty && dobVal) ? 'Yes' : 'No',
+                role:         (document.querySelector('input[name="role"]:checked') || {}).value || '',
+                skills:       document.getElementById('skills').value.trim(),
+                tshirt:       (document.querySelector('input[name="tshirt"]:checked') || {}).value || '',
+                amount:       AMOUNT,
+                paymentRef:   document.getElementById('paymentRef').value.trim(),
+                declaration:  'Yes',
+                tournament:   'JPL Season 1',
+                timestamp:    new Date().toISOString()
+            };
+
+            const result = await sendToGoogleSheets(data);
+
+            submitBtn.textContent = 'Complete Registration';
+            submitBtn.disabled = false;
+
+            if (result.success) {
+                document.getElementById('successMessage').classList.add('show');
+                document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth' });
+                this.style.display = 'none';
+            } else {
+                showError('Could not save your registration. Please try again or contact 8939225539.', 'Submission Error');
+            }
+        });
+
+        async function sendToGoogleSheets(data) {
+            if (GOOGLE_SHEETS_URL === "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE") {
+                console.error('Apps Script URL not configured.');
+                // Let the organizer test the form UI before the backend is wired up:
+                alert('⚠️ Backend not configured yet.\n\nThe form works, but submissions are not being saved.\nPaste your Apps Script URL into GOOGLE_SHEETS_URL in index.html.');
+                return { success: false };
+            }
+            try {
+                await fetch(GOOGLE_SHEETS_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                return { success: true };
+            } catch (error) {
+                console.error('Submission error:', error);
+                return { success: false };
+            }
+        }
+
+        function showError(message, title = 'Error') {
+            document.getElementById('errorTitle').textContent = title;
+            document.getElementById('errorText').textContent = message;
+            document.getElementById('errorMessage').classList.add('show');
+            document.getElementById('successMessage').classList.remove('show');
+            document.getElementById('errorMessage').scrollIntoView({ behavior: 'smooth' });
+        }
+        function hideError() { document.getElementById('errorMessage').classList.remove('show'); }
+    </script>
+</body>
+</html>
