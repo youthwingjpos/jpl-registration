@@ -44,7 +44,8 @@
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
 
-        .org-name { font-size: 0.85em; color: #22c55e; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+        .org-name { font-size: 0.85em; color: #22c55e; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+        .org-sub { font-size: 0.8em; color: #94a3b8; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
 
         h1 { font-family: 'Crimson Pro', serif; font-size: 2.6em; color: #f8fafc; margin-bottom: 8px; font-weight: 700; line-height: 1.15; }
 
@@ -161,6 +162,24 @@
         }
         .pay-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(34, 197, 94, 0.5); }
 
+        /* Screenshot upload */
+        .upload-box {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 8px; padding: 22px; border: 1.5px dashed rgba(34, 197, 94, 0.45);
+            border-radius: 12px; background: rgba(34, 197, 94, 0.05); cursor: pointer;
+            text-align: center; transition: all 0.2s ease; color: #cbd5e1;
+        }
+        .upload-box:hover { border-color: #22c55e; background: rgba(34, 197, 94, 0.1); }
+        .upload-box .up-icon { font-size: 1.8em; }
+        .upload-box .up-main { font-weight: 600; color: #f1f5f9; }
+        .upload-box input[type="file"] { display: none; }
+        #screenshotPreview { margin-top: 12px; text-align: center; }
+        #screenshotPreview img { max-width: 220px; max-height: 260px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15); }
+        #screenshotPreview .remove-shot {
+            display: inline-block; margin-top: 8px; color: #f87171; font-size: 0.85em;
+            cursor: pointer; font-weight: 600;
+        }
+
         /* Declaration */
         .declaration {
             display: flex; gap: 14px; align-items: flex-start;
@@ -183,6 +202,17 @@
 
         .footer-note { text-align: center; color: #64748b; font-size: 0.85em; margin-top: 25px; }
 
+        /* Copy buttons */
+        .pay-number-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .copy-btn {
+            border: 1px solid rgba(34, 197, 94, 0.5); background: rgba(34, 197, 94, 0.12);
+            color: #22c55e; border-radius: 8px; padding: 5px 12px; font-size: 0.78em;
+            font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.2s ease;
+            vertical-align: middle; white-space: nowrap;
+        }
+        .copy-btn:hover { background: rgba(34, 197, 94, 0.22); }
+        .copy-btn.copied { background: #22c55e; color: #fff; border-color: #22c55e; }
+
         @media (max-width: 600px) {
             h1 { font-size: 2em; }
             .form-card { padding: 30px 22px; }
@@ -192,7 +222,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <div class="org-name">Sri Jaitaranpatti Oswal Sangh, Chennai</div>
+            <div class="org-name">Youth Wing / Yuva Parishad</div>
+            <div class="org-sub">Sri Jaitaranpatti Oswal Sangh, Chennai</div>
             <h1>JPOS Premier League</h1>
             <div class="season-badge">🏏 SEASON 1</div>
             <div class="event-meta">
@@ -254,8 +285,6 @@
                     <div class="choice-grid" id="roleGroup">
                         <label class="choice"><input type="radio" name="role" value="Batsman" required><span>🏏 Batsman</span></label>
                         <label class="choice"><input type="radio" name="role" value="Bowler"><span>🎯 Bowler</span></label>
-                        <label class="choice"><input type="radio" name="role" value="All Rounder"><span>⭐ All Rounder</span></label>
-                        <label class="choice"><input type="radio" name="role" value="WK Keeper"><span>🧤 WK Keeper</span></label>
                     </div>
                 </div>
 
@@ -287,8 +316,11 @@
                     <div class="pay-flex">
                         <div id="qrcode" title="Scan to pay ₹200"></div>
                         <div class="pay-details">
-                            <p>Scan the QR, or GPay / UPI to:</p>
-                            <div class="gpay-number" id="payNumberDisplay">9710220344</div>
+                            <p>Scan the QR, or pay to this UPI ID:</p>
+                            <div class="pay-number-row">
+                                <div class="gpay-number" id="payUpiDisplay">gunas@idfcbank</div>
+                                <button type="button" class="copy-btn" id="copyUpiBtn">📋 Copy</button>
+                            </div>
                             <a href="#" class="pay-btn" id="upiPayBtn">Pay ₹200 via UPI ›</a>
                             <p class="help-text" style="margin-top:12px;">After paying, enter your payment reference / UTR number below.</p>
                         </div>
@@ -299,6 +331,17 @@
                     <label for="paymentRef">Payment Reference / UTR Number <span class="required">*</span></label>
                     <input type="text" id="paymentRef" name="paymentRef" required placeholder="e.g., UPI transaction ID / reference number">
                     <div class="help-text">Found in your GPay/PhonePe/bank payment confirmation</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="paymentScreenshot">Payment Screenshot <span class="help-text" style="font-style:normal;">(recommended)</span></label>
+                    <label class="upload-box" for="paymentScreenshot">
+                        <div class="up-icon">📸</div>
+                        <div class="up-main">Tap to upload your GPay / UPI screenshot</div>
+                        <div class="help-text" style="margin:0;">Helps us confirm your payment faster</div>
+                        <input type="file" id="paymentScreenshot" name="paymentScreenshot" accept="image/*">
+                    </label>
+                    <div id="screenshotPreview"></div>
                 </div>
 
                 <!-- Declaration -->
@@ -314,7 +357,8 @@
             </form>
         </div>
 
-        <div class="footer-note">For support, contact Saafal 📞 8939225539</div>
+        <div class="footer-note">For support, contact Saafal 📞 <span id="supportNumber">8939225539</span>
+            <button type="button" class="copy-btn" id="copySupportBtn">📋 Copy</button></div>
     </div>
 
     <script>
@@ -324,7 +368,7 @@
         // 1. UPI ID that receives payments. A phone number alone is NOT a
         //    valid UPI address — replace @upi with your real handle, e.g.
         //    9710220344@ybl (PhonePe), @oksbi, @okhdfcbank, @okbizaxis, etc.
-        const UPI_ID       = "9710220344@upi";
+        const UPI_ID       = "gunas@idfcbank";
         const PAYEE_NAME   = "JPOS Premier League";
         const AMOUNT       = "200";
         const PAY_NOTE     = "JPL Season 1 Registration";
@@ -363,7 +407,7 @@
 
             // Wire the pay button + shown number
             document.getElementById('upiPayBtn').href = upiLink;
-            document.getElementById('payNumberDisplay').textContent = UPI_ID.split('@')[0];
+            document.getElementById('payUpiDisplay').textContent = UPI_ID;
 
             // Keep phone numeric
             document.getElementById('phone').addEventListener('input', function() {
@@ -373,6 +417,13 @@
 
             // Recalculate age whenever DOB changes
             document.getElementById('dob').addEventListener('change', updateAgeFromDob);
+
+            // Payment screenshot: resize + preview
+            document.getElementById('paymentScreenshot').addEventListener('change', handleScreenshot);
+
+            // Copy buttons
+            document.getElementById('copyUpiBtn').addEventListener('click', function () { copyText(UPI_ID, this); });
+            document.getElementById('copySupportBtn').addEventListener('click', function () { copyText(document.getElementById('supportNumber').textContent.trim(), this); });
 
             // Load the member database and wire up UID auto-fill
             loadMemberDatabase();
@@ -536,6 +587,71 @@
             status.textContent = '✓ Welcome, ' + (name || 'Member') + '!';
         }
 
+        // ---- Copy-to-clipboard helper ----
+        function copyText(text, btn) {
+            const done = () => {
+                const old = btn.textContent;
+                btn.textContent = '✓ Copied';
+                btn.classList.add('copied');
+                setTimeout(() => { btn.textContent = old; btn.classList.remove('copied'); }, 1500);
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+            } else {
+                fallbackCopy(text, done);
+            }
+        }
+        function fallbackCopy(text, done) {
+            const ta = document.createElement('textarea');
+            ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+            document.body.appendChild(ta); ta.focus(); ta.select();
+            try { document.execCommand('copy'); done(); } catch (e) {}
+            document.body.removeChild(ta);
+        }
+
+        // ---- Payment screenshot helpers ----
+        let paymentScreenshotData = ''; // resized JPEG data URL, sent with the registration
+
+        function handleScreenshot() {
+            const file = this.files && this.files[0];
+            const preview = document.getElementById('screenshotPreview');
+            if (!file) { paymentScreenshotData = ''; preview.innerHTML = ''; return; }
+            preview.innerHTML = '<span class="help-text">Processing image…</span>';
+            resizeImage(file, 1200, 0.72, function (dataUrl) {
+                if (!dataUrl) { paymentScreenshotData = ''; preview.innerHTML = '<span class="help-text">Could not read that image — try another.</span>'; return; }
+                paymentScreenshotData = dataUrl;
+                preview.innerHTML = '<img src="' + dataUrl + '" alt="Payment screenshot preview"><br>' +
+                    '<span class="remove-shot" onclick="clearScreenshot()">✕ Remove</span>';
+            });
+        }
+
+        function clearScreenshot() {
+            paymentScreenshotData = '';
+            document.getElementById('paymentScreenshot').value = '';
+            document.getElementById('screenshotPreview').innerHTML = '';
+        }
+
+        function resizeImage(file, maxDim, quality, cb) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const img = new Image();
+                img.onload = function () {
+                    let w = img.width, h = img.height;
+                    if (w > h && w > maxDim) { h = Math.round(h * maxDim / w); w = maxDim; }
+                    else if (h >= w && h > maxDim) { w = Math.round(w * maxDim / h); h = maxDim; }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w; canvas.height = h;
+                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                    try { cb(canvas.toDataURL('image/jpeg', quality)); }
+                    catch (err) { cb(''); }
+                };
+                img.onerror = function () { cb(''); };
+                img.src = e.target.result;
+            };
+            reader.onerror = function () { cb(''); };
+            reader.readAsDataURL(file);
+        }
+
         // ---- Date of birth → age helpers ----
         function parseDOB(str) {
             if (!str) return null;
@@ -594,6 +710,7 @@
                 tshirt:       (document.querySelector('input[name="tshirt"]:checked') || {}).value || '',
                 amount:       AMOUNT,
                 paymentRef:   document.getElementById('paymentRef').value.trim(),
+                paymentScreenshot: paymentScreenshotData,
                 declaration:  'Yes',
                 tournament:   'JPL Season 1',
                 timestamp:    new Date().toISOString()
