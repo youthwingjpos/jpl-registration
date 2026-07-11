@@ -202,6 +202,23 @@
 
         .footer-note { text-align: center; color: #64748b; font-size: 0.85em; margin-top: 25px; }
 
+        /* Membership completion reminder (shown after success) */
+        .membership-reminder {
+            display: none; margin-bottom: 25px; padding: 22px 24px; border-radius: 16px;
+            background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.4);
+            animation: slideDown 0.5s ease-out;
+        }
+        .membership-reminder.show { display: block; }
+        .mr-title { font-weight: 700; color: #fbbf24; font-size: 1.05em; margin-bottom: 8px; }
+        .mr-text { color: #e2e8f0; font-size: 0.95em; line-height: 1.55; margin-bottom: 16px; }
+        .mr-text strong { color: #fbbf24; }
+        .mr-btn {
+            display: inline-block; padding: 12px 24px; text-decoration: none; font-weight: 700;
+            border-radius: 10px; color: #111827; background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.35); transition: all 0.3s ease;
+        }
+        .mr-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5); }
+
         /* Copy buttons */
         .pay-number-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
         .copy-btn {
@@ -237,6 +254,15 @@
             <div class="success-message" id="successMessage">
                 <h2>✓ Registration Successful!</h2>
                 <p>You're in for JPL Season 1. See you on 15th August at 8 AM. 🏏</p>
+            </div>
+
+            <div class="membership-reminder" id="membershipReminder">
+                <div class="mr-title">📋 One more step — complete your JPOS membership profile</div>
+                <p class="mr-text">
+                    Our records show your main membership profile isn't filled in yet. Please complete it once —
+                    it only takes a couple of minutes. Use your Member ID <strong id="reminderUid"></strong>.
+                </p>
+                <a class="mr-btn" id="membershipLink" href="https://youthwingjpos.github.io/yjpos/" target="_blank" rel="noopener">Complete Membership Form ›</a>
             </div>
 
             <div class="error-message" id="errorMessage">
@@ -445,6 +471,7 @@
         let memberLoading = false;    // a load attempt is in progress
         let memberMatched = false;   // did the UID match a member row?
         let dbDobEmpty = false;      // was that member's DOB blank in the database?
+        let memberProfileComplete = false; // is their main membership profile already filled in?
 
         async function loadMemberDatabase() {
             if (memberLoading || memberDbReady) return;
@@ -549,7 +576,7 @@
                 status.textContent = '⚠ Member ID not found — you can still enter your details manually.';
                 nameEl.classList.remove('autofilled');
                 phoneEl.classList.remove('autofilled');
-                memberMatched = false; dbDobEmpty = false;
+                memberMatched = false; dbDobEmpty = false; memberProfileComplete = false;
                 dobEl.readOnly = false; dobEl.classList.remove('autofilled');
                 dobHelp.textContent = 'Please enter your date of birth';
                 return;
@@ -563,6 +590,10 @@
                 phoneEl.value = mobile.toString().replace(/\D/g, '').slice(-10);
                 phoneEl.classList.add('autofilled');
             }
+
+            // Has this member already completed the main membership profile?
+            const pcRaw = memberField(member, ['Profile Completed', 'profile completed', 'ProfileCompleted']);
+            memberProfileComplete = String(pcRaw).trim().toLowerCase() === 'yes';
 
             // Date of Birth: use the database value if present, else ask for it
             memberMatched = true;
@@ -723,6 +754,14 @@
 
             if (result.success) {
                 document.getElementById('successMessage').classList.add('show');
+                // If their main membership profile isn't complete yet, nudge them to finish it.
+                if (memberMatched && !memberProfileComplete) {
+                    const uidNow = document.getElementById('uid').value.trim();
+                    document.getElementById('reminderUid').textContent = uidNow;
+                    document.getElementById('membershipLink').href =
+                        'https://youthwingjpos.github.io/yjpos/' + (uidNow ? '?uid=' + encodeURIComponent(uidNow) : '');
+                    document.getElementById('membershipReminder').classList.add('show');
+                }
                 document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth' });
                 this.style.display = 'none';
             } else {
