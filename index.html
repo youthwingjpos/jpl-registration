@@ -149,6 +149,27 @@
             display: none; animation: slideDown 0.5s ease-out;
         }
         .success-message { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; }
+
+        /* Waiting list (shown instead of the green success box once capacity is full) */
+        .waitlist-message {
+            display: none; margin-bottom: 25px; padding: 28px 25px; border-radius: 16px;
+            text-align: center; animation: slideDown 0.5s ease-out;
+            background: linear-gradient(135deg, #b45309 0%, #92400e 100%);
+            border: 1px solid rgba(251, 191, 36, 0.55); color: #fff;
+        }
+        .waitlist-message.show { display: block; }
+        .waitlist-message h2 { font-family: 'Crimson Pro', serif; font-weight: 700; }
+        .wl-number {
+            display: inline-block; margin: 14px 0 12px; padding: 8px 24px; border-radius: 30px;
+            background: rgba(0, 0, 0, 0.28); font-size: 1.15em; font-weight: 700; letter-spacing: 0.5px;
+        }
+        .wl-number strong { font-size: 1.35em; color: #fde68a; }
+        .wl-text { font-size: 0.95em; line-height: 1.6; color: #fef3c7; }
+        .wl-refund {
+            margin-top: 14px; padding: 12px 16px; border-radius: 10px;
+            background: rgba(0, 0, 0, 0.22); border: 1px solid rgba(253, 230, 138, 0.35);
+            font-size: 0.9em; line-height: 1.55; color: #fde68a; font-weight: 600;
+        }
         .error-message { background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color: white; }
         .success-message.show, .error-message.show { display: block; }
 
@@ -354,7 +375,18 @@
         <div class="form-card">
             <div class="success-message" id="successMessage">
                 <h2>✓ Registration Successful!</h2>
-                <p>You're in for Mohan Bagh Khel Utsav. See you on 15th August at 8 AM. 🏏</p>
+                <p id="successText">You're in for Mohan Bagh Khel Utsav. See you on 15th August at 8 AM. 🏏</p>
+            </div>
+
+            <div class="waitlist-message" id="waitlistMessage">
+                <h2>🕒 You're on the Waiting List</h2>
+                <div class="wl-number">Waiting List No. <strong id="waitlistNumber">–</strong></div>
+                <p class="wl-text">
+                    All <strong id="waitlistCapacity">80</strong> spots for Mohan Bagh Khel Utsav are already confirmed,
+                    so your registration has been recorded on the waiting list. If a spot opens up we'll contact you
+                    on the mobile number you gave — in waiting list order.
+                </p>
+                <p class="wl-refund">💰 Your ₹200 is safe — the fee only becomes non-refundable once your spot is confirmed. If you don't get a spot, it will be refunded in full.</p>
             </div>
 
             <div class="membership-reminder" id="membershipReminder">
@@ -441,7 +473,7 @@
                 <div class="payment-section">
                     <div style="text-align:center;">
                         <div class="amount-badge">₹200</div>
-                        <div class="nonrefundable">Registration fees — non-refundable</div>
+                        <div class="nonrefundable">Registration fees — non-refundable once your spot is confirmed</div>
                     </div>
                     <div class="pay-flex">
                         <div id="qrcode" title="Scan to pay ₹200"></div>
@@ -857,7 +889,19 @@
             submitBtn.disabled = false;
 
             if (result.success) {
-                document.getElementById('successMessage').classList.add('show');
+                // The server decides Confirmed vs Waiting List (it counts the sheet under a
+                // lock), so the number shown here always matches what's saved.
+                if (result.status === 'Waiting List') {
+                    document.getElementById('waitlistNumber').textContent = result.waitingNo;
+                    document.getElementById('waitlistCapacity').textContent = result.capacity || 80;
+                    document.getElementById('waitlistMessage').classList.add('show');
+                } else {
+                    if (result.positionUnknown) {
+                        document.getElementById('successText').textContent =
+                            "Your registration has been received. We'll confirm your spot shortly.";
+                    }
+                    document.getElementById('successMessage').classList.add('show');
+                }
                 // If their main membership profile isn't complete yet, nudge them to finish it.
                 if (memberMatched && !memberProfileComplete) {
                     const uidNow = document.getElementById('uid').value.trim();
@@ -866,7 +910,8 @@
                         'https://youthwingjpos.github.io/yjpos/' + (uidNow ? '?uid=' + encodeURIComponent(uidNow) : '');
                     document.getElementById('membershipReminder').classList.add('show');
                 }
-                document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth' });
+                const shown = result.status === 'Waiting List' ? 'waitlistMessage' : 'successMessage';
+                document.getElementById(shown).scrollIntoView({ behavior: 'smooth' });
                 this.style.display = 'none';
             } else {
                 showError('Could not save your registration. Please try again or contact 8939225539.', 'Submission Error');
@@ -881,16 +926,24 @@
                 return { success: false };
             }
             try {
-                await fetch(GOOGLE_SHEETS_URL, {
+                // Deliberately NO custom Content-Type header. That keeps this a "simple"
+                // CORS request (no preflight, which Apps Script would fail), so we can
+                // actually READ the reply — that's how we learn the server-assigned
+                // Confirmed / Waiting List number. Apps Script sends it as text/plain,
+                // which doPost still reads via e.postData.contents.
+                const res = await fetch(GOOGLE_SHEETS_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
-                return { success: true };
+                const out = await res.json();
+                if (out && out.success) return out;
+                return { success: false, error: (out && out.error) || 'Unknown error' };
             } catch (error) {
-                console.error('Submission error:', error);
-                return { success: false };
+                // We couldn't read the reply. The row may well have been written, so we
+                // must NOT retry — that would register the player twice. Treat it as
+                // saved but with an unknown position rather than risking a duplicate.
+                console.error('Could not read submission response:', error);
+                return { success: true, positionUnknown: true };
             }
         }
 
