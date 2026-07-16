@@ -248,14 +248,6 @@
         .pay-details { flex: 1; min-width: 200px; }
         .pay-details p { margin-bottom: 8px; color: var(--silver); }
         .gpay-number { font-size: 1.5em; font-weight: 800; color: #fff; letter-spacing: 1px; }
-        .pay-btn {
-            display: inline-block; margin-top: 14px; padding: 14px 26px;
-            background: linear-gradient(135deg, var(--red-br) 0%, var(--red) 100%); color: #fff;
-            border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 1.05em;
-            box-shadow: 0 4px 15px rgba(200, 16, 46, 0.45); transition: all 0.3s ease;
-        }
-        .pay-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(200, 16, 46, 0.6); }
-
         /* Screenshot upload */
         .upload-box {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -483,8 +475,7 @@
                                 <div class="gpay-number" id="payUpiDisplay">gunas@idfcbank</div>
                                 <button type="button" class="copy-btn" id="copyUpiBtn">📋 Copy</button>
                             </div>
-                            <a href="#" class="pay-btn" id="upiPayBtn">Pay ₹200 via UPI ›</a>
-                            <p class="help-text" style="margin-top:12px;">After paying, enter your payment reference / UTR number below.</p>
+                            <p class="help-text" style="margin-top:12px;">Scan the QR with any UPI app (GPay / PhonePe / Paytm), or copy the UPI ID above and pay ₹200 from your app. Then enter your payment reference / UTR number below.</p>
                         </div>
                     </div>
                 </div>
@@ -567,8 +558,7 @@
                 });
             } catch (e) { console.error('QR render failed', e); }
 
-            // Wire the pay button + shown number
-            document.getElementById('upiPayBtn').href = upiLink;
+            // Show the UPI ID (the QR above encodes the same payment link)
             document.getElementById('payUpiDisplay').textContent = UPI_ID;
 
             // Keep phone numeric
