@@ -215,7 +215,11 @@
         .amount-badge {
             display: inline-block; background: linear-gradient(135deg, #eef2f9 0%, #aab6cd 100%);
             color: #0d1b3e; font-weight: 800; font-size: 1.4em; padding: 4px 20px;
-            border-radius: 12px; margin-bottom: 18px;
+            border-radius: 12px; margin-bottom: 6px;
+        }
+        .nonrefundable {
+            color: var(--silver); font-size: 0.82em; font-weight: 600;
+            letter-spacing: 0.5px; margin-bottom: 18px;
         }
         .pay-flex { display: flex; gap: 25px; flex-wrap: wrap; align-items: center; justify-content: center; }
         #qrcode { background: #fff; padding: 12px; border-radius: 12px; display: inline-block; line-height: 0; }
@@ -334,7 +338,7 @@
             <div class="event-meta">
                 <div>📅 <strong>15 August</strong></div>
                 <div>⏰ From <strong>8:00 AM</strong></div>
-                <div>💰 Entry <strong>₹200</strong></div>
+                <div>💰 Registration Fees <strong>₹200</strong></div>
             </div>
         </div>
 
@@ -437,6 +441,7 @@
                 <div class="payment-section">
                     <div style="text-align:center;">
                         <div class="amount-badge">₹200</div>
+                        <div class="nonrefundable">Registration fees — non-refundable</div>
                     </div>
                     <div class="pay-flex">
                         <div id="qrcode" title="Scan to pay ₹200"></div>
