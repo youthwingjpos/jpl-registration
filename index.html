@@ -170,6 +170,15 @@
             background: rgba(0, 0, 0, 0.22); border: 1px solid rgba(253, 230, 138, 0.35);
             font-size: 0.9em; line-height: 1.55; color: #fde68a; font-weight: 600;
         }
+        /* Registrations closed (full, waiting list included) */
+        .closed-message {
+            margin-bottom: 25px; padding: 34px 26px; border-radius: 16px; text-align: center;
+            background: linear-gradient(135deg, #7f1d1d 0%, #450a0a 100%);
+            border: 1px solid rgba(248, 113, 113, 0.5); color: #fff;
+        }
+        .closed-message h2 { font-family: 'Crimson Pro', serif; font-weight: 700; font-size: 1.7em; margin-bottom: 12px; }
+        .closed-message p { font-size: 1em; line-height: 1.65; color: #fee2e2; }
+        .closed-message .cm-sub { margin-top: 14px; font-size: 1.05em; color: #fecaca; font-weight: 600; }
         .error-message { background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color: white; }
         .success-message.show, .error-message.show { display: block; }
 
@@ -413,6 +422,16 @@
                 <div class="cb-text" id="cbText"></div>
             </div>
 
+            <div class="closed-message" id="closedMessage" style="display:none;">
+                <h2>🚫 Registrations Closed</h2>
+                <p>
+                    Thank you for the tremendous response! All Youth Wing spots for
+                    <strong>Mohan Bagh Khel Utsav</strong> — including the waiting list — are now full,
+                    so registration is closed.
+                </p>
+                <p class="cm-sub">See you on <strong>15th August</strong> at 8 AM. 🏏</p>
+            </div>
+
             <div class="error-message" id="errorMessage">
                 <h2>⚠ <span id="errorTitle">Error</span></h2>
                 <p id="errorText"></p>
@@ -560,6 +579,10 @@
         //    Deploy the included apps-script.gs and paste the /exec URL here.
         const CLUB = "Youth Wing";
         const CLUB_KEY = "youthWing";
+
+        // Registration is CLOSED once all spots (including the waiting list) are full.
+        // Set to false to re-open the form.
+        const REGISTRATION_CLOSED = true;
         const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbxC8bsCyXgwuT9lhzGKcfokvzt-yAKpZdF5NuctwpvzmJvt1IizZpRXF7XBujsej0Sg9g/exec";
 
         // 3. Member database sources used to auto-fill Name + Mobile + DOB
@@ -581,6 +604,14 @@
             "&tn=" + encodeURIComponent(PAY_NOTE);
 
         document.addEventListener('DOMContentLoaded', function() {
+            // If registration is closed, show the closed notice and hide the form entirely.
+            if (REGISTRATION_CLOSED) {
+                document.getElementById('closedMessage').style.display = 'block';
+                const f = document.getElementById('registrationForm');
+                if (f) f.style.display = 'none';
+                return;
+            }
+
             // Render QR code
             try {
                 new QRCode(document.getElementById("qrcode"), {
